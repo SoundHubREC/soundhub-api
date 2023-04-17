@@ -1,0 +1,40 @@
+{
+  "name": "soundhub-api",
+  "version": "1.0.0",
+  "description": "## Para contribuir com o projeto, leia a nossa wiki, basta clicar no botão Wiki que está entre o botão Projects e Security na parra superior",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "npx nodemon",
+    "build": "rimraf ./build && tsc",
+    "lint": "eslint --config .eslintrc.js  \"src/**/*.ts\"",
+    "format": "prettier --config .prettierrc 'src/**/*.ts' --write --loglevel silent",
+    "precommit": "npm run format && npm run lint",
+    "prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SoundHubREC/soundhub-api.git"
+  },
+  "keywords": [],
+  "author": "SoundHubREC",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SoundHubREC/soundhub-api/issues"
+  },
+  "homepage": "https://github.com/SoundHubREC/soundhub-api#readme",
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "@typescript-eslint/eslint-plugin": "^5.58.0",
+    "@typescript-eslint/parser": "^5.58.0",
+    "eslint": "^8.38.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^8.0.3",
+    "nodemon": "^2.0.22",
+    "prettier": "^2.8.7",
+    "rimraf": "^5.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  }
+}
