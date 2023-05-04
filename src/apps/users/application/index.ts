@@ -1,1 +1,1 @@
-export * from './usecases/user.usecase';
+export * from '../../admin/application/usecases/create-qr-code';
