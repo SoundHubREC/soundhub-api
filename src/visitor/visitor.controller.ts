@@ -27,6 +27,11 @@ export class VisitorController {
     return this.visitorService.create(visitor);
   }
 
+  @Get('/tables')
+  async getTables(): Promise<number[]> {
+    return await this.visitorService.findTable();
+  }
+
   @Get(':id')
   async getById(@Param('id') id: string): Promise<Visitor> {
     return await this.visitorService.findById(id);

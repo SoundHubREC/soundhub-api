@@ -34,6 +34,25 @@ export class VisitorService {
     return table;
   }
 
+  async findTable(): Promise<number[]> {
+    const tables = await this.visitorModel.find(
+      {},
+      {
+        _id: 0,
+        name: 0,
+        active: 0,
+        credits: 0,
+        createdAt: 0,
+        updatedAt: 0,
+        __v: 0,
+      },
+    );
+
+    return Array.from(new Set(tables.map((item) => item.tableNum))).sort(
+      (a, b) => a - b,
+    );
+  }
+
   async updateById(id: string, visitor: Visitor): Promise<Visitor> {
     return await this.visitorModel.findByIdAndUpdate(id, visitor, {
       new: true,
