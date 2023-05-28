@@ -51,11 +51,202 @@ export class SpotifyService {
       });
   }
 
-  playlists(token) {
+  createPlaylist(token, playlistDto) {
+    const userId = '31ll2prtlnv5x7ytzplyd2gz5naq';
+    const options = {
+      url: `https://api.spotify.com/v1/users/${userId}/playlists`,
+      headers: { Authorization: 'Bearer ' + token },
+      body: playlistDto,
+      json: true,
+    };
+
+    const result = () => {
+      return new Promise((resolve, reject) => {
+        request.post(options, function (error, response, body) {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(body);
+          }
+        });
+      });
+    };
+
+    result()
+      .then((body: any) => {
+        this.result = body;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    return this.result;
+  }
+
+  getUser(token) {
+    const options = {
+      url: `https://api.spotify.com/v1/me/player`,
+      headers: { Authorization: 'Bearer ' + token },
+      json: true,
+    };
+
+    const result = () => {
+      return new Promise((resolve, reject) => {
+        request.get(options, function (error, response, body) {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(body);
+          }
+        });
+      });
+    };
+
+    result()
+      .then((body: any) => {
+        this.result = body;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    return this.result;
+  }
+
+  getPlaylists(token) {
     const id = `31ll2prtlnv5x7ytzplyd2gz5naq`;
     const options = {
       url: `https://api.spotify.com/v1/users/${id}/playlists`,
       headers: { Authorization: 'Bearer ' + token },
+      json: true,
+    };
+
+    const result = () => {
+      return new Promise((resolve, reject) => {
+        request.get(options, function (error, response, body) {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(body);
+          }
+        });
+      });
+    };
+
+    result()
+      .then((body: any) => {
+        this.result = body;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    return this.result;
+  }
+
+  search(token, query) {
+    const term = query.replace(/ /g, '%20');
+
+    const options = {
+      url: `https://api.spotify.com/v1/search?q=${term}&type=artist%2Ctrack&market=BR`,
+      headers: { Authorization: 'Bearer ' + token },
+      json: true,
+    };
+
+    const result = () => {
+      return new Promise((resolve, reject) => {
+        request.get(options, function (error, response, body) {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(body);
+          }
+        });
+      });
+    };
+
+    result()
+      .then((body: any) => {
+        this.result = body;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    return this.result;
+  }
+
+  addItem(token, trackId) {
+    const playlistId = '798qUrPlxHUuJhb8rk1MP3';
+    const options = {
+      url: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+      headers: { Authorization: 'Bearer ' + token },
+      body: { uris: ['spotify:track:' + trackId] },
+      json: true,
+    };
+
+    const result = () => {
+      return new Promise((resolve, reject) => {
+        request.post(options, function (error, response, body) {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(body);
+          }
+        });
+      });
+    };
+
+    result()
+      .then((body: any) => {
+        this.result = body;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    return this.result;
+  }
+
+  removeItem(token, trackId) {
+    const playlistId = '798qUrPlxHUuJhb8rk1MP3';
+    const options = {
+      url: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+      headers: { Authorization: 'Bearer ' + token },
+      body: { tracks: [{ uri: 'spotify:track:' + trackId }] },
+      json: true,
+    };
+
+    const result = () => {
+      return new Promise((resolve, reject) => {
+        request.delete(options, function (error, response, body) {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(body);
+          }
+        });
+      });
+    };
+
+    result()
+      .then((body: any) => {
+        this.result = body;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    return this.result;
+  }
+
+  getPlaylist(token) {
+    const playlistId = '798qUrPlxHUuJhb8rk1MP3';
+    const options = {
+      url: `
+      https://api.spotify.com/v1/playlists/${playlistId}`,
+      headers: { Authorization: 'Bearer ' + token },
+
       json: true,
     };
 
