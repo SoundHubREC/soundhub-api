@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Req,
-  Res,
-  Param,
-  Body,
-  Post,
-} from '@nestjs/common';
+import { Controller, Get, Query, Res, Param, Body, Post } from '@nestjs/common';
 import { SpotifyService } from './spotify.service';
 import { AuthService } from './auth.service';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
@@ -20,28 +11,8 @@ export class TracksController {
   ) {}
 
   @Get('/login')
-  async login(@Req() req, @Res() res) {
-    const params = {
-      response_type: 'code',
-      client_id: process.env.CLIENT_ID,
-      scope: process.env.SCOPES,
-      redirect_uri: process.env.REDIRECT_URI,
-    };
-
-    const buildQueryString = (params: Record<string, any>): string => {
-      const queryString = Object.entries(params)
-        .map(
-          ([key, value]) =>
-            `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
-        )
-        .join('&');
-
-      return queryString;
-    };
-
-    res.redirect(
-      `https://accounts.spotify.com/authorize?${buildQueryString(params)}`,
-    );
+  async login(@Res() res) {
+    return await this.spotifyService.login(res);
   }
 
   @Get('/acess')

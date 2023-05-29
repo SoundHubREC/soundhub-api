@@ -8,6 +8,30 @@ export class SpotifyService {
 
   private result;
 
+  async login(res) {
+    const params = {
+      response_type: 'code',
+      client_id: process.env.CLIENT_ID,
+      scope: process.env.SCOPES,
+      redirect_uri: process.env.REDIRECT_URI,
+    };
+
+    const buildQueryString = (params: Record<string, any>): string => {
+      const queryString = Object.entries(params)
+        .map(
+          ([key, value]) =>
+            `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+        )
+        .join('&');
+
+      return queryString;
+    };
+
+    res.redirect(
+      `https://accounts.spotify.com/authorize?${buildQueryString(params)}`,
+    );
+  }
+
   async acess(code): Promise<void> {
     const authOptions = {
       url: 'https://accounts.spotify.com/api/token',
@@ -39,7 +63,7 @@ export class SpotifyService {
       });
     };
 
-    tokens()
+    await tokens()
       .then((access_token: string) => {
         this.authService.setToken(access_token);
       })
@@ -51,7 +75,7 @@ export class SpotifyService {
       });
   }
 
-  createPlaylist(token, playlistDto) {
+  async createPlaylist(token, playlistDto) {
     const userId = '31ll2prtlnv5x7ytzplyd2gz5naq';
     const options = {
       url: `https://api.spotify.com/v1/users/${userId}/playlists`,
@@ -72,7 +96,7 @@ export class SpotifyService {
       });
     };
 
-    result()
+    await result()
       .then((body: any) => {
         this.result = body;
       })
@@ -83,7 +107,7 @@ export class SpotifyService {
     return this.result;
   }
 
-  getUser(token) {
+  async getUser(token) {
     const options = {
       url: `https://api.spotify.com/v1/me/player`,
       headers: { Authorization: 'Bearer ' + token },
@@ -102,7 +126,7 @@ export class SpotifyService {
       });
     };
 
-    result()
+    await result()
       .then((body: any) => {
         this.result = body;
       })
@@ -113,7 +137,7 @@ export class SpotifyService {
     return this.result;
   }
 
-  getPlaylists(token) {
+  async getPlaylists(token) {
     const id = `31ll2prtlnv5x7ytzplyd2gz5naq`;
     const options = {
       url: `https://api.spotify.com/v1/users/${id}/playlists`,
@@ -133,7 +157,7 @@ export class SpotifyService {
       });
     };
 
-    result()
+    await result()
       .then((body: any) => {
         this.result = body;
       })
@@ -144,7 +168,7 @@ export class SpotifyService {
     return this.result;
   }
 
-  search(token, query) {
+  async search(token, query) {
     const term = query.replace(/ /g, '%20');
 
     const options = {
@@ -165,7 +189,7 @@ export class SpotifyService {
       });
     };
 
-    result()
+    await result()
       .then((body: any) => {
         this.result = body;
       })
@@ -176,7 +200,7 @@ export class SpotifyService {
     return this.result;
   }
 
-  addItem(token, trackId) {
+  async addItem(token, trackId) {
     const playlistId = '798qUrPlxHUuJhb8rk1MP3';
     const options = {
       url: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
@@ -197,7 +221,7 @@ export class SpotifyService {
       });
     };
 
-    result()
+    await result()
       .then((body: any) => {
         this.result = body;
       })
@@ -208,7 +232,7 @@ export class SpotifyService {
     return this.result;
   }
 
-  removeItem(token, trackId) {
+  async removeItem(token, trackId) {
     const playlistId = '798qUrPlxHUuJhb8rk1MP3';
     const options = {
       url: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
@@ -229,7 +253,7 @@ export class SpotifyService {
       });
     };
 
-    result()
+    await result()
       .then((body: any) => {
         this.result = body;
       })
@@ -240,7 +264,7 @@ export class SpotifyService {
     return this.result;
   }
 
-  getPlaylist(token) {
+  async getPlaylist(token) {
     const playlistId = '798qUrPlxHUuJhb8rk1MP3';
     const options = {
       url: `
@@ -262,7 +286,7 @@ export class SpotifyService {
       });
     };
 
-    result()
+    await result()
       .then((body: any) => {
         this.result = body;
       })
