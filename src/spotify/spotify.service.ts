@@ -197,6 +197,51 @@ export class SpotifyService {
     return res;
   }
 
+  async getArtistTopTracks(token, artistId) {
+    const options = {
+      url: `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=BR`,
+      headers: { Authorization: 'Bearer ' + token },
+      json: true,
+    };
+
+    const result = () => {
+      return new Promise((resolve, reject) => {
+        request.get(options, function (error, response, body) {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(body);
+          }
+        });
+      });
+    };
+
+    await result()
+      .then((body: any) => {
+        this.result = body;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    const res = [];
+
+    for (const item in this.result.tracks) {
+      const { id, name, artists, album } = this.result.tracks[item];
+
+      const musica = {
+        id: id,
+        name: name,
+        artist: artists[0].name,
+        images: album.images[0],
+      };
+
+      res.push(musica);
+    }
+
+    return res;
+  }
+
   async getPlaylists(token) {
     const options = {
       url: `https://api.spotify.com/v1/me/playlists`,
@@ -292,7 +337,7 @@ export class SpotifyService {
   }
 
   async addItem(token, trackId) {
-    const playlistId = '2XcJMKBNvjw19yrTj6m7tO';
+    const playlistId = process.env.SPOTIFY_PLAYLIST_IDS;
     const options = {
       url: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
       headers: { Authorization: 'Bearer ' + token },
@@ -430,7 +475,9 @@ export class SpotifyService {
       artistId: dto.artistId,
     };
 
-    const credits = await this.trackModel.count({ _id: visitor._id });
+    const credits = await this.trackModel
+      .countDocuments({ userId: visitor._id })
+      .exec();
 
     if (credits >= 2) {
       throw new UnauthorizedException('Você já atingiu o limite de créditos');

@@ -61,6 +61,12 @@ export class TracksController {
     return await this.spotifyService.getTracks();
   }
 
+  @Get('/artist/:artistId')
+  async getArtistTopTrack(@Param('artistId') artist) {
+    const token = this.authService.getToken();
+    return await this.spotifyService.getArtistTopTracks(token, artist);
+  }
+
   @Get('/queue')
   async getQueue() {
     const token = this.authService.getToken();
@@ -87,12 +93,6 @@ export class TracksController {
   async getArtists() {
     const token = this.authService.getToken();
     return this.spotifyService.getArtists(token);
-  }
-
-  @Get('/playlist')
-  async getPlaylist() {
-    const token = this.authService.getToken();
-    return this.spotifyService.getPlaylists(token);
   }
 
   @Get('/user')
