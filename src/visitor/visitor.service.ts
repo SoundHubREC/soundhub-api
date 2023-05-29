@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Visitor } from './schemas/visitor.schema';
 import * as mongoose from 'mongoose';
@@ -15,6 +19,17 @@ export class VisitorService {
   }
 
   async create(visitor: Visitor): Promise<Visitor> {
+    const foundVisitor = await this.visitorModel.findOne({
+      name: visitor.name,
+      tableNum: visitor.tableNum,
+    });
+
+    if (foundVisitor) {
+      throw new UnauthorizedException(
+        'Essa mesa já tem uma pessoa com esse nome de usuário, escolha outro ',
+      );
+    }
+
     return await this.visitorModel.create(visitor);
   }
 
@@ -22,6 +37,15 @@ export class VisitorService {
     const visitor = await this.visitorModel.findById(id);
 
     if (!visitor) throw new NotFoundException('Visitor not found');
+
+    return visitor;
+  }
+
+  async find(name: string, table: number): Promise<Visitor> {
+    const visitor = await this.visitorModel.findOne({
+      name: name,
+      tableNum: table,
+    });
 
     return visitor;
   }

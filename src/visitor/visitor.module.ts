@@ -10,5 +10,6 @@ import { VisitorSchema } from './schemas/visitor.schema';
   ],
   controllers: [VisitorController],
   providers: [VisitorService],
+  exports: [VisitorService],
 })
 export class VisitorModule {}

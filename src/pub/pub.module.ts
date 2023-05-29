@@ -10,5 +10,6 @@ import { QrCodeSchema } from './schemas/qr-code.schema';
   ],
   controllers: [PubController],
   providers: [PubService],
+  exports: [PubService],
 })
 export class PubModule {}
