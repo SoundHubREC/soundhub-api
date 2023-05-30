@@ -232,9 +232,13 @@ export class SpotifyService {
       artists.push(artist.artistId);
     }
 
+    const artistsId = artists.filter(
+      (item, index) => artists.indexOf(item) === index,
+    );
+
     const options = {
       url: `
-      https://api.spotify.com/v1/artists?ids=${artists.toString()}`,
+      https://api.spotify.com/v1/artists?ids=${artistsId.toString()}`,
       headers: { Authorization: 'Bearer ' + token },
       json: true,
     };
