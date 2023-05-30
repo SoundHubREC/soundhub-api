@@ -30,7 +30,7 @@ export class TracksController {
   @Get('/playlist/:playlistId')
   async getPlaylists(@Param('playlistId') playlistId: string) {
     const token = this.authService.getToken();
-    return this.spotifyService.getPlaylist(token, playlistId);
+    return await this.spotifyService.getPlaylist(token, playlistId);
   }
 
   @Get('/acess')
@@ -38,10 +38,10 @@ export class TracksController {
     return await this.spotifyService.acess(code);
   }
 
-  @Put('/play')
-  async play() {
+  @Put('/play/:track')
+  async play(@Param('track') track) {
     const token = this.authService.getToken();
-    return await this.spotifyService.play(token);
+    return await this.spotifyService.play(token, track);
   }
 
   @Put('/pause')
@@ -70,13 +70,13 @@ export class TracksController {
   @Get('/queue')
   async getQueue() {
     const token = this.authService.getToken();
-    return this.spotifyService.getQueue(token);
+    return await this.spotifyService.getQueue(token);
   }
   @UseGuards(AuthGuard)
   @Post('/queue/add')
   async addMusicaQueue(@Body() track: InsertTrack, @Request() req) {
     const token = this.authService.getToken();
-    return this.spotifyService.postMusicInQueue(
+    return await this.spotifyService.postMusicInQueue(
       token,
       track,
       req.payload.visitor,
@@ -86,19 +86,19 @@ export class TracksController {
   @Get('/playlists')
   async viewPlaylists() {
     const token = this.authService.getToken();
-    return this.spotifyService.getPlaylists(token);
+    return await this.spotifyService.getPlaylists(token);
   }
 
   @Get('/artists')
   async getArtists() {
     const token = this.authService.getToken();
-    return this.spotifyService.getArtists(token);
+    return await this.spotifyService.getArtists(token);
   }
 
   @Get('/user')
   async user() {
     const token = this.authService.getToken();
-    return this.spotifyService.getUser(token);
+    return await this.spotifyService.getUser(token);
   }
 
   @Get('/search/:query')
@@ -109,18 +109,18 @@ export class TracksController {
   @Get('/addItem/:track')
   async addItem(@Param('track') track: string) {
     const token = this.authService.getToken();
-    return this.spotifyService.addItem(token, track);
+    return await this.spotifyService.addItem(token, track);
   }
 
   @Post('/playlist')
   async addPlaylist(@Body() playlist: CreatePlaylistDto) {
     const token = this.authService.getToken();
-    return this.spotifyService.createPlaylist(token, playlist);
+    return await this.spotifyService.createPlaylist(token, playlist);
   }
 
   @Get('/removeItem/:track')
   async remove(@Param('track') track: string) {
     const token = this.authService.getToken();
-    return this.spotifyService.removeItem(token, track);
+    return await this.spotifyService.removeItem(token, track);
   }
 }

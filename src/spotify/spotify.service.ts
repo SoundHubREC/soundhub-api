@@ -17,6 +17,7 @@ export class SpotifyService {
   ) {}
 
   private result;
+  private error;
 
   async login(res) {
     const params = {
@@ -319,7 +320,7 @@ export class SpotifyService {
 
     const res = [];
 
-    for (const item in this.result.tracks.items) {
+    for (const item in this.result.tracks?.items) {
       const { id, name, artists, album } = this.result.tracks.items[item];
 
       const musica = {
@@ -402,8 +403,7 @@ export class SpotifyService {
 
   async getQueue(token) {
     const options = {
-      url: `
-        https://api.spotify.com/v1/me/player/queue`,
+      url: `https://api.spotify.com/v1/me/player/queue`,
       headers: { Authorization: 'Bearer ' + token },
       json: true,
     };
@@ -430,42 +430,52 @@ export class SpotifyService {
 
     const res = [];
 
+    if (!this.result.currently_playing)
+      throw new UnauthorizedException('No tracks playing now, add to queue');
+
+    const track = {
+      id: this.result.currently_playing.id,
+      name: this.result.currently_playing.name,
+      artist: this.result.currently_playing.artists[0].name,
+      images: this.result.currently_playing.album.images[0],
+      duration_ms: this.result.currently_playing.duration_ms,
+      visitorId: null,
+      visitorTable: null,
+    };
+
+    res.push(track);
+
     for (const item in this.result.queue) {
       const { id, name, artists, album, duration_ms } = this.result.queue[item];
-
-      if (item === '0') {
-        const track = {
-          id: this.result.currently_playing.id,
-          name: this.result.currently_playing.name,
-          artist: this.result.currently_playing.artists[0].name,
-          images: this.result.currently_playing.album.images[0],
-          duration_ms: this.result.currently_playing.duration_ms,
-        };
-        res.push(track);
-      }
 
       const track = {
         id: id,
         name: name,
         artist: artists[0].name,
-        artistId: artists[0].id,
         images: album.images[0],
         duration_ms: duration_ms,
+        visitorId: null,
+        visitorTable: null,
       };
 
       res.push(track);
     }
 
-    const mapObj = new Map();
+    const date = new Date();
 
-    res.forEach((v) => {
-      const prevValue = mapObj.get(v.id);
-      if (!prevValue || prevValue.type === 'new') {
-        mapObj.set(v.id, v);
-      }
-    });
+    for (let i = 0; i < res.length; i++) {
+      const foundVisitor = await this.trackModel.findOne({
+        trackId: res[i].id,
+        createdAt: {
+          $gte: date.setHours(date.getHours() - 1),
+        },
+      });
 
-    return [...mapObj.values()];
+      res[i].visitorId = foundVisitor.userId;
+      res[i].visitorTable = foundVisitor.table;
+    }
+
+    return res;
   }
 
   async postMusicInQueue(token, dto, visitor) {
@@ -473,13 +483,30 @@ export class SpotifyService {
       userId: visitor._id,
       trackId: dto.trackId,
       artistId: dto.artistId,
+      table: visitor.tableNum,
     };
+
+    const date = new Date();
+
+    const foundTrack = await this.trackModel
+      .countDocuments({
+        trackId: dto.trackId,
+        createdAt: {
+          $gte: date.setHours(date.getHours() - 1),
+        },
+      })
+      .exec();
+
+    if (foundTrack !== 0)
+      throw new UnauthorizedException(
+        'Essa música já foi escolhida, aguarde um tempo para tentar adicioná-la novamente',
+      );
 
     const credits = await this.trackModel
       .countDocuments({ userId: visitor._id })
       .exec();
 
-    if (credits >= 2) {
+    if (credits >= visitor.credits) {
       throw new UnauthorizedException('Você já atingiu o limite de créditos');
     }
 
@@ -506,9 +533,11 @@ export class SpotifyService {
       .then(async (body: any) => {
         this.result = body;
       })
-      .catch((error) => {
-        throw new UnauthorizedException(error);
+      .catch((e) => {
+        console.error(e);
       });
+
+    if (this.result?.error) throw new UnauthorizedException(this.result.error);
 
     await this.trackModel.create(track);
 
@@ -610,16 +639,30 @@ export class SpotifyService {
         console.error(error);
       });
 
-    return this.result;
+    const res = {
+      message: 'Paused queue',
+    };
+
+    return res;
   }
 
-  async play(token) {
-    const options = {
-      url: `
-      https://api.spotify.com/v1/me/player/play`,
-      headers: { Authorization: 'Bearer ' + token },
-      json: true,
-    };
+  async play(token, track) {
+    let options = {};
+
+    if (track === '0') {
+      options = {
+        url: `https://api.spotify.com/v1/me/player/play`,
+        headers: { Authorization: 'Bearer ' + token },
+        json: true,
+      };
+    } else {
+      options = {
+        url: `https://api.spotify.com/v1/me/player/play`,
+        body: { uris: ['spotify:track:' + track] },
+        headers: { Authorization: 'Bearer ' + token },
+        json: true,
+      };
+    }
 
     const result = () => {
       return new Promise((resolve, reject) => {
@@ -641,7 +684,10 @@ export class SpotifyService {
         console.error(error);
       });
 
-    return this.result;
+    const res = {
+      message: 'Resume/Start queue',
+    };
+    return res;
   }
 
   async next(token) {

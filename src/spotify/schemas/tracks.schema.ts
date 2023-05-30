@@ -12,6 +12,9 @@ export class Tracks {
 
   @Prop()
   artistId: string;
+
+  @Prop()
+  table: number;
 }
 
 export const TracksSchema = SchemaFactory.createForClass(Tracks);

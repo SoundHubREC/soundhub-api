@@ -60,6 +60,7 @@ export class SpotifyAuthService {
       .then((body: any) => {
         this.setToken(body.access_token);
         this.setRefreshToken(body.refresh_token);
+        this.setTimeOut(body.expires_in);
       })
 
       .catch((error) => {
