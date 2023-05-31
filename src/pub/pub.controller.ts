@@ -1,31 +1,58 @@
-import { Controller, Get, Post, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Delete,
+  Request,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { PubService } from './pub.service';
 import { QrCode } from './schemas/qr-code.schema';
 import * as mongoose from 'mongoose';
-
+import { CreatePubDto } from './dto/create-pub.dto';
+import { Pub } from './schemas/pub.schema';
+import { AuthGuard } from 'src/auth/auth.guard';
 @Controller('pub')
 export class PubController {
-  constructor(private pbService: PubService) {}
+  constructor(private pubService: PubService) {}
 
+  @Post()
+  async createPub(@Body() pub: CreatePubDto): Promise<Pub> {
+    return await this.pubService.createPub(pub);
+  }
+
+  @UseGuards(AuthGuard)
   @Post('/qrcode/:table')
-  async create(@Param('table') tableNum: number): Promise<QrCode> {
-    return await this.pbService.create(tableNum);
+  async createQrCode(
+    @Param('table') tableNum: number,
+    @Request() req,
+  ): Promise<QrCode> {
+    return await this.pubService.createQrCode(tableNum, req.payload.pubId);
   }
 
+  @UseGuards(AuthGuard)
   @Get('/qrcode')
-  async getAll(): Promise<QrCode[]> {
-    return await this.pbService.findAll();
+  async getAll(@Request() req): Promise<QrCode[]> {
+    return await this.pubService.findAllQrCodes(req.payload.pubId);
   }
 
+  @UseGuards(AuthGuard)
   @Get('/qrcode/:table')
-  async getByTable(@Param('table') table: number): Promise<QrCode> {
-    return await this.pbService.findByTable(table);
+  async getByTable(
+    @Param('table') table: number,
+    @Request() req,
+  ): Promise<QrCode> {
+    return await this.pubService.findQrCodeByTable(table, req.payload.pubId);
   }
 
+  @UseGuards(AuthGuard)
   @Delete('/qrcode/:table')
   async deleteByTable(
     @Param('table') table: number,
+    @Request() req,
   ): Promise<mongoose.mongo.DeleteResult> {
-    return await this.pbService.delete(table);
+    return await this.pubService.deleteQrCodeByTable(table, req.payload.pubId);
   }
 }

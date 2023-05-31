@@ -26,11 +26,13 @@ export class TracksController {
   async login(@Res() res) {
     return await this.spotifyAuthService.login(res);
   }
-
+  @UseGuards(AuthGuard)
   @Get('/playlist/:playlistId')
-  async getPlaylists(@Param('playlistId') playlistId: string) {
-    const token = this.spotifyAuthService.getToken();
-    return await this.spotifyService.getPlaylist(token, playlistId);
+  async getPlaylists(@Request() req, @Param('playlistId') playlistId: string) {
+    return await this.spotifyService.getPlaylist(
+      req.payload.pubAcessToken,
+      playlistId,
+    );
   }
 
   @Get('/acess')
@@ -38,78 +40,86 @@ export class TracksController {
     return await this.spotifyAuthService.acess(code);
   }
 
-  @Put('/play')
-  async play() {
-    const token = this.spotifyAuthService.getToken();
-    return await this.spotifyService.play(token);
-  }
-
-  @Put('/pause')
-  async pause() {
-    const token = this.spotifyAuthService.getToken();
-    return await this.spotifyService.pause(token);
-  }
-
-  @Post('/next')
-  async next() {
-    const token = this.spotifyAuthService.getToken();
-    return await this.spotifyService.next(token);
-  }
-
-  @Get('/artist/:artistId')
-  async getArtistTopTrack(@Param('artistId') artist) {
-    const token = this.spotifyAuthService.getToken();
-    return await this.spotifyService.getArtistTopTracks(token, artist);
-  }
-
-  @Get('/queue')
-  async getQueue() {
-    const token = this.spotifyAuthService.getToken();
-    return await this.spotifyService.getQueue(token);
-  }
   @UseGuards(AuthGuard)
-  @Post('/queue/add')
-  async addMusicaQueue(@Body() track: InsertTrack, @Request() req) {
-    const token = this.spotifyAuthService.getToken();
-    return await this.spotifyService.addTrackQueue(
-      token,
-      track,
-      req.payload.visitor,
+  @Put('/play')
+  async play(@Request() req) {
+    return await this.spotifyService.play(req.payload.pubAcessToken);
+  }
+
+  @UseGuards(AuthGuard)
+  @Put('/pause')
+  async pause(@Request() req) {
+    return await this.spotifyService.pause(req.payload.pubAcessToken);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('/next')
+  async next(@Request() req) {
+    return await this.spotifyService.next(req.payload.pubAcessToken);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/artist/:artistId')
+  async getArtistTopTrack(@Param('artistId') artist, @Request() req) {
+    return await this.spotifyService.getArtistTopTracks(
+      req.payload.visitor.code,
+      artist,
     );
   }
 
+  @UseGuards(AuthGuard)
+  @Get('/queue')
+  async getQueue(@Request() req) {
+    return await this.spotifyService.getQueue(req.payload.visitor.code);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('/queue/add')
+  async addMusicaQueue(@Body() track: InsertTrack, @Request() req) {
+    return await this.spotifyService.addTrackQueue(track, req.payload.visitor);
+  }
+  @UseGuards(AuthGuard)
   @Get('/playlists')
-  async viewPlaylists() {
-    const token = this.spotifyAuthService.getToken();
-    return await this.spotifyService.getPlaylists(token);
+  async viewPlaylists(@Request() req) {
+    return await this.spotifyService.getPlaylists(req.payload.pubAcessToken);
   }
 
+  @UseGuards(AuthGuard)
   @Get('/artists')
-  async getArtists() {
-    const token = this.spotifyAuthService.getToken();
-    return await this.spotifyService.getArtists(token);
+  async getArtists(@Request() req) {
+    return await this.spotifyService.getArtists(req.payload.visitor.code);
   }
 
+  @UseGuards(AuthGuard)
   @Get('/search/:query')
-  async search(@Param('query') query: string) {
-    const token = this.spotifyAuthService.getToken();
-    return this.spotifyService.search(token, query);
+  async search(@Param('query') query: string, @Request() req) {
+    return this.spotifyService.search(req.payload.visitor.code, query);
   }
+
+  @UseGuards(AuthGuard)
   @Get('/addItem/:track')
-  async addItem(@Param('track') track: string) {
-    const token = this.spotifyAuthService.getToken();
-    return await this.spotifyService.addPlaylistItem(token, track);
+  async addItem(@Param('track') track: string, @Request() req) {
+    return await this.spotifyService.addPlaylistItem(
+      req.payload.pubAcessToken,
+      track,
+    );
   }
 
+  @UseGuards(AuthGuard)
   @Post('/playlist')
-  async addPlaylist(@Body() playlist: CreatePlaylistDto) {
-    const token = this.spotifyAuthService.getToken();
-    return await this.spotifyService.createPlaylist(token, playlist);
+  async addPlaylist(@Body() playlist: CreatePlaylistDto, @Request() req) {
+    return await this.spotifyService.createPlaylist(
+      req.payload.pubAcessToken,
+      playlist,
+    );
   }
 
+  @UseGuards(AuthGuard)
   @Get('/removeItem/:track')
-  async remove(@Param('track') track: string) {
-    const token = this.spotifyAuthService.getToken();
-    return await this.spotifyService.removePlaylistItem(token, track);
+  async remove(@Param('track') track: string, @Request() req) {
+    return await this.spotifyService.removePlaylistItem(
+      req.payload.pubAcessToken,
+      track,
+    );
   }
 }

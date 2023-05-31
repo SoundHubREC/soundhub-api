@@ -8,10 +8,10 @@ export class QrCode {
   qrCode: string;
 
   @Prop()
-  codes: string[];
+  tableNum: number;
 
   @Prop()
-  tableNum: number;
+  pubId: string;
 }
 
 export const QrCodeSchema = SchemaFactory.createForClass(QrCode);

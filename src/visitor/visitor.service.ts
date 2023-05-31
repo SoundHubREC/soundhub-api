@@ -14,8 +14,12 @@ export class VisitorService {
     private visitorModel: mongoose.Model<Visitor>,
   ) {}
 
-  async findAll(): Promise<Visitor[]> {
-    return await this.visitorModel.find();
+  async findAll(pubCode: string): Promise<Visitor[]> {
+    const foundVisitors = await this.visitorModel.find({ code: pubCode });
+
+    if (!foundVisitors) throw new UnauthorizedException('Visitors not found');
+
+    return foundVisitors;
   }
 
   async create(visitor: Visitor): Promise<Visitor> {
@@ -26,22 +30,22 @@ export class VisitorService {
 
     if (foundVisitor) {
       throw new UnauthorizedException(
-        'Essa mesa já tem uma pessoa com esse nome de usuário, escolha outro ',
+        'This table already has a user with that name, choose another one',
       );
     }
 
     return await this.visitorModel.create(visitor);
   }
 
-  async findById(id: string): Promise<Visitor> {
-    const visitor = await this.visitorModel.findById(id);
+  async findById(id: string, pubCode: string): Promise<Visitor> {
+    const visitor = await this.visitorModel.findOne({ _id: id, code: pubCode });
 
     if (!visitor) throw new NotFoundException('Visitor not found');
 
     return visitor;
   }
 
-  async find(name: string, table: number): Promise<Visitor> {
+  async findByNameAndTable(name: string, table: number): Promise<Visitor> {
     const visitor = await this.visitorModel.findOne({
       name: name,
       tableNum: table,
@@ -50,17 +54,20 @@ export class VisitorService {
     return visitor;
   }
 
-  async findByTable(tableNum: number): Promise<Visitor[]> {
-    const table = await this.visitorModel.find({ tableNum: tableNum });
+  async findByTable(pubCode: string, tableNum: number): Promise<Visitor[]> {
+    const table = await this.visitorModel.find({
+      code: pubCode,
+      tableNum: tableNum,
+    });
 
     if (!table) throw new NotFoundException('Table not found');
 
     return table;
   }
 
-  async findTable(): Promise<number[]> {
+  async findTable(pubCode): Promise<number[]> {
     const tables = await this.visitorModel.find(
-      {},
+      { code: pubCode },
       {
         _id: 0,
         name: 0,
@@ -77,25 +84,17 @@ export class VisitorService {
     );
   }
 
-  async updateById(id: string, visitor: Visitor): Promise<Visitor> {
-    return await this.visitorModel.findByIdAndUpdate(id, visitor, {
-      new: true,
-      runValidators: true,
+  async deleteById(pubCode: string, id: string): Promise<void> {
+    return await this.visitorModel.findOneAndDelete({ _id: id, code: pubCode });
+  }
+
+  async deleteByTable(
+    pubCode: string,
+    tableNum: number,
+  ): Promise<mongoose.mongo.DeleteResult> {
+    return await this.visitorModel.deleteMany({
+      code: pubCode,
+      tableNum: tableNum,
     });
-  }
-
-  async updateState(table: number): Promise<mongoose.UpdateWriteOpResult> {
-    return await this.visitorModel.updateMany(
-      { tableNum: table },
-      { $set: { active: false } },
-    );
-  }
-
-  async deleteById(id: string): Promise<void> {
-    return await this.visitorModel.findByIdAndDelete(id);
-  }
-
-  async deleteByTable(tableNum: number): Promise<mongoose.mongo.DeleteResult> {
-    return await this.visitorModel.deleteMany({ tableNum: tableNum });
   }
 }

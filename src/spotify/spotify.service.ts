@@ -1,17 +1,23 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import * as request from 'request';
-import { SpotifyAuthService } from './auth/spotify-auth.service';
 import { Tracks } from './schemas/tracks.schema';
 import mongoose from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import * as dotenv from 'dotenv';
+import { PubService } from 'src/pub/pub.service';
 
 dotenv.config();
 
 @Injectable()
 export class SpotifyService {
   constructor(
-    private readonly authService: SpotifyAuthService,
+    @Inject(forwardRef(() => PubService))
+    private readonly pubService: PubService,
     @InjectModel(Tracks.name)
     private trackModel: mongoose.Model<Tracks>,
   ) {}
@@ -213,7 +219,13 @@ export class SpotifyService {
     return this.result;
   }
 
-  async getArtists(token) {
+  async getArtists(visitorCode) {
+    const foundPub = await this.pubService.findPubByCode(visitorCode);
+
+    if (!foundPub) throw new UnauthorizedException('Pub not found');
+
+    const token = foundPub.spotifyAcessToken;
+
     const foundArtists = await this.trackModel.find(
       {},
       {
@@ -232,9 +244,15 @@ export class SpotifyService {
       artists.push(artist.artistId);
     }
 
+    const artistsId = artists.filter(
+      (item, index) => artists.indexOf(item) === index,
+    );
+
+    if (artistsId.length === 0) throw new UnauthorizedException('No artists');
+
     const options = {
       url: `
-      https://api.spotify.com/v1/artists?ids=${artists.toString()}`,
+      https://api.spotify.com/v1/artists?ids=${artistsId.toString()}`,
       headers: { Authorization: 'Bearer ' + token },
       json: true,
     };
@@ -278,7 +296,13 @@ export class SpotifyService {
     return res;
   }
 
-  async getArtistTopTracks(token, artistId) {
+  async getArtistTopTracks(visitorCode, artistId) {
+    const foundPub = await this.pubService.findPubByCode(visitorCode);
+
+    if (!foundPub) throw new UnauthorizedException('Pub not found');
+
+    const token = foundPub.spotifyAcessToken;
+
     const options = {
       url: `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=BR`,
       headers: { Authorization: 'Bearer ' + token },
@@ -325,7 +349,13 @@ export class SpotifyService {
     return res;
   }
 
-  async search(token, query) {
+  async search(visitorCode, query) {
+    const foundPub = await this.pubService.findPubByCode(visitorCode);
+
+    if (!foundPub) throw new UnauthorizedException('Pub not found');
+
+    const token = foundPub.spotifyAcessToken;
+
     const term = query.replace(/ /g, '%20');
 
     const options = {
@@ -375,7 +405,13 @@ export class SpotifyService {
     return res;
   }
 
-  async getQueue(token) {
+  async getQueue(visitorCode) {
+    const foundPub = await this.pubService.findPubByCode(visitorCode);
+
+    if (!foundPub) throw new UnauthorizedException('Pub not found');
+
+    const token = foundPub.spotifyAcessToken;
+
     const options = {
       url: `https://api.spotify.com/v1/me/player/queue`,
       headers: { Authorization: 'Bearer ' + token },
@@ -454,7 +490,7 @@ export class SpotifyService {
     return res;
   }
 
-  async addTrackQueue(token, dto, visitor) {
+  async addTrackQueue(dto, visitor) {
     const track = {
       userId: visitor._id,
       trackId: dto.trackId,
@@ -485,6 +521,10 @@ export class SpotifyService {
     if (credits >= visitor.credits) {
       throw new UnauthorizedException('Credit limit reaching');
     }
+
+    const foundPub = await this.pubService.findPubByCode(visitor.code);
+
+    const token = foundPub.spotifyAcessToken;
 
     const options = {
       url: `

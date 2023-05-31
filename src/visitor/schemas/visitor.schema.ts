@@ -13,8 +13,8 @@ export class Visitor {
   @Prop({ default: 2 })
   credits: number;
 
-  @Prop({ default: true })
-  active: boolean;
+  @Prop()
+  code: string;
 }
 
 export const VisitorSchema = SchemaFactory.createForClass(Visitor);

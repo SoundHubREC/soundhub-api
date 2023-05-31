@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SpotifyModule } from './spotify/spotify.module';
 import { AuthModule } from './auth/auth.module';
+import { PubModule } from './pub/pub.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { AuthModule } from './auth/auth.module';
     VisitorModule,
     SpotifyModule,
     AuthModule,
+    PubModule,
   ],
 })
 export class AppModule {}
