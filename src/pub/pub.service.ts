@@ -61,11 +61,24 @@ export class PubService {
     if (!actualToken)
       throw new UnauthorizedException('Please login in spotify');
 
+    if (!newToken?.refresh_token) {
+      await this.pubModel.updateOne(
+        { _id: pubId },
+        {
+          $set: {
+            spotifyAcessToken: newToken.access_token,
+            updatedAt: new Date(),
+          },
+        },
+      );
+    }
+
     await this.pubModel.updateOne(
       { _id: pubId },
       {
         $set: {
           spotifyAcessToken: newToken.access_token,
+          spotifyRefreshToken: newToken.refresh_token,
           updatedAt: new Date(),
         },
       },
