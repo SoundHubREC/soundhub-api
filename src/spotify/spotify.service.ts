@@ -583,7 +583,7 @@ export class SpotifyService {
       visitor.code,
     );
 
-    if (foundVisitor.credits >= visitor.credits) {
+    if (visitor.credits >= foundVisitor.credits) {
       throw new UnauthorizedException('Credit limit reaching');
     }
 
