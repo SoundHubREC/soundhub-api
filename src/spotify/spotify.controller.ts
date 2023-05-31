@@ -45,19 +45,19 @@ export class TracksController {
   @UseGuards(AuthGuard)
   @Put('/play')
   async play(@Request() req) {
-    return await this.spotifyService.play(req.payload.pubAcessToken);
+    return await this.spotifyService.play(req.payload.pubCode);
   }
 
   @UseGuards(AuthGuard)
   @Put('/pause')
   async pause(@Request() req) {
-    return await this.spotifyService.pause(req.payload.pubAcessToken);
+    return await this.spotifyService.pause(req.payload.pubCode);
   }
 
   @UseGuards(AuthGuard)
   @Post('/next')
   async next(@Request() req) {
-    return await this.spotifyService.next(req.payload.pubAcessToken);
+    return await this.spotifyService.next(req.payload.pubCode);
   }
 
   @UseGuards(AuthGuard)
@@ -84,7 +84,7 @@ export class TracksController {
   @UseGuards(AuthGuard)
   @Get('/playlists')
   async viewPlaylists(@Request() req) {
-    return await this.spotifyService.getPlaylists(req.payload.pubAcessToken);
+    return await this.spotifyService.getPlaylists(req.payload.visitor.code);
   }
 
   @UseGuards(AuthGuard)
@@ -103,7 +103,7 @@ export class TracksController {
   @Get('/addItem/:track')
   async addItem(@Param('track') track: string, @Request() req) {
     return await this.spotifyService.addPlaylistItem(
-      req.payload.pubAcessToken,
+      req.payload.pubCode,
       track,
     );
   }
@@ -112,7 +112,7 @@ export class TracksController {
   @Post('/playlist')
   async addPlaylist(@Body() playlist: CreatePlaylistDto, @Request() req) {
     return await this.spotifyService.createPlaylist(
-      req.payload.pubAcessToken,
+      req.payload.pubCode,
       playlist,
     );
   }
@@ -121,7 +121,7 @@ export class TracksController {
   @Get('/removeItem/:track')
   async remove(@Param('track') track: string, @Request() req) {
     return await this.spotifyService.removePlaylistItem(
-      req.payload.pubAcessToken,
+      req.payload.pubCode,
       track,
     );
   }
