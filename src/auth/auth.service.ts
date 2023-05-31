@@ -5,6 +5,7 @@ import { Visitor } from 'src/visitor/schemas/visitor.schema';
 import { VisitorService } from 'src/visitor/visitor.service';
 import * as bcrypt from 'bcrypt';
 import { LoginPubDto } from 'src/pub/dto/login-pub.dto';
+import { SpotifyAuthService } from 'src/spotify/auth/spotify-auth.service';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +13,7 @@ export class AuthService {
     private jwtService: JwtService,
     private visitorService: VisitorService,
     private pubService: PubService,
+    private spotifyAuthService: SpotifyAuthService,
   ) {}
 
   async createVisitor(visitor: Visitor) {
@@ -41,6 +43,10 @@ export class AuthService {
     const foundPass = await bcrypt.compare(pub.password, foundPub.password);
 
     if (!foundPass) throw new UnauthorizedException(`Incorrect password`);
+
+    const token = await this.spotifyAuthService.getToken();
+
+    await this.pubService.setPubTokens(foundPub._id.toString(), token);
 
     const payload = {
       pubId: foundPub._id,
