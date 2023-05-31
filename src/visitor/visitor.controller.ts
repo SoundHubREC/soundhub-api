@@ -1,8 +1,6 @@
 import {
   Controller,
   Get,
-  Post,
-  Body,
   Param,
   Delete,
   UseGuards,
@@ -10,18 +8,12 @@ import {
 } from '@nestjs/common';
 import { VisitorService } from './visitor.service';
 import { Visitor } from './schemas/visitor.schema';
-import { CreateVisitorDto } from './dto/create-visitor.dto';
 import mongoose from 'mongoose';
 import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('visitors')
 export class VisitorController {
   constructor(private visitorService: VisitorService) {}
-
-  @Post()
-  async create(@Body() visitor: CreateVisitorDto): Promise<Visitor> {
-    return this.visitorService.create(visitor);
-  }
 
   @UseGuards(AuthGuard)
   @Get()
