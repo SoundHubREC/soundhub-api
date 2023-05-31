@@ -1,88 +1,87 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import * as request from 'request';
+import { PubService } from 'src/pub/pub.service';
 
 @Injectable()
 export class SpotifyAuthService {
-  private token: string;
-  private refreshToken: string;
-  private timeout: number;
+  private token: any;
   private result: any;
 
-  setToken(token: string) {
+  constructor(
+    @Inject(forwardRef(() => PubService))
+    private pubService: PubService,
+  ) {}
+
+  setToken(token: any) {
     this.token = token;
   }
 
-  setTimeOut(time: number) {
-    this.timeout = time;
-  }
-
-  getToken() {
+  getToken(): any {
     return this.token;
   }
 
-  getRefreshToken() {
-    return this.refreshToken;
-  }
+  async renewToken(pubId) {
+    const token = this.getToken();
+    let result = {};
 
-  setRefreshToken(refreshToken: string) {
-    this.refreshToken = refreshToken;
-  }
+    setInterval(async function () {
+      const authOptions = {
+        url: 'https://accounts.spotify.com/api/token',
+        form: {
+          grant_type: 'refresh_token',
+          refresh_token: token.refresh_token,
+        },
+        headers: {
+          Authorization:
+            'Basic ' +
+            Buffer.from(
+              process.env.CLIENT_ID + ':' + process.env.CLIENT_SECRET,
+            ).toString('base64'),
+        },
+        json: true,
+      };
 
-  async renewToken() {
-    const authOptions = {
-      url: 'https://accounts.spotify.com/api/token',
-      form: {
-        grant_type: 'refresh_token',
-        refresh_token: this.refreshToken,
-      },
-      headers: {
-        Authorization:
-          'Basic ' +
-          Buffer.from(
-            process.env.CLIENT_ID + ':' + process.env.CLIENT_SECRET,
-          ).toString('base64'),
-      },
-      json: true,
-    };
-
-    const tokens = () => {
-      return new Promise((resolve, reject) => {
-        request.post(authOptions, function (error, request, body) {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(body);
-          }
+      const tokens = () => {
+        return new Promise((resolve, reject) => {
+          request.post(authOptions, function (error, request, body) {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(body);
+            }
+          });
         });
-      });
-    };
+      };
 
-    await tokens()
-      .then((body: any) => {
-        this.result = body;
-      })
+      await tokens()
+        .then((body: any) => {
+          result = body;
+        })
 
-      .catch((error) => {
-        console.error(error);
-      });
+        .catch((error) => {
+          console.error(error);
+        });
+    }, 5000);
 
-    this.setToken(this.result.access_token);
-    this.setRefreshToken(this.result.refresh_token);
+    this.setToken(result);
 
-    this.setTimeOut(this.result.expires_in);
-
-    const expirationTimeInMillis = (this.timeout - 60) * 1000;
-    setInterval(async () => {
-      await this.renewToken();
-    }, expirationTimeInMillis);
+    await this.pubService.setPubTokens(pubId, token);
   }
 
-  async login(res) {
+  async login(res, code) {
+    const foundPub = await this.pubService.findPubByCode(code);
+
     const params = {
       response_type: 'code',
       client_id: process.env.CLIENT_ID,
       scope: process.env.SCOPES,
       redirect_uri: process.env.REDIRECT_URI,
+      state: foundPub._id,
     };
 
     const buildQueryString = (params: Record<string, any>): string => {
@@ -101,7 +100,7 @@ export class SpotifyAuthService {
     );
   }
 
-  async acess(code): Promise<void> {
+  async acess(code, pubId): Promise<void> {
     const authOptions = {
       url: 'https://accounts.spotify.com/api/token',
       form: {
@@ -142,11 +141,8 @@ export class SpotifyAuthService {
 
     if (this.result?.error) throw new UnauthorizedException(this.result.error);
 
-    this.setToken(this.result.access_token);
-    this.setRefreshToken(this.result.refresh_token);
+    this.setToken(this.result);
 
-    this.setTimeOut(this.result.expires_in);
-
-    await this.renewToken();
+    await this.renewToken(pubId);
   }
 }

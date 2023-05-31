@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  forwardRef,
+  Inject,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { QrCode } from './schemas/qr-code.schema';
 import * as mongoose from 'mongoose';
@@ -14,6 +19,7 @@ export class PubService {
     private qrCodeModel: mongoose.Model<QrCode>,
     @InjectModel(Pub.name)
     private pubModel: mongoose.Model<Pub>,
+    @Inject(forwardRef(() => SpotifyAuthService))
     private readonly authSpotifyService: SpotifyAuthService,
   ) {}
 
@@ -49,21 +55,18 @@ export class PubService {
     return await this.pubModel.findOne({ _id: id });
   }
 
-  async setPubTokens(pubId: string) {
+  async setPubTokens(pubId: string, token) {
     await this.pubModel.updateOne(
       { _id: pubId },
       {
         $set: {
-          spotifyAcessToken: this.authSpotifyService.getToken(),
-          spotifyRefreshToken: this.authSpotifyService.getRefreshToken(),
+          spotifyAcessToken: token.access_token,
+          spotifyRefreshToken: token.refresh_token,
         },
       },
     );
 
-    return [
-      this.authSpotifyService.getToken(),
-      this.authSpotifyService.getRefreshToken(),
-    ];
+    return token;
   }
 
   async findAllQrCodes(pubId: string): Promise<QrCode[]> {

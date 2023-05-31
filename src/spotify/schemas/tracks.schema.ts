@@ -15,6 +15,9 @@ export class Tracks {
 
   @Prop()
   table: number;
+
+  @Prop()
+  pubId: string;
 }
 
 export const TracksSchema = SchemaFactory.createForClass(Tracks);
