@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as request from 'request';
 
 @Injectable()
@@ -59,9 +59,7 @@ export class SpotifyAuthService {
 
     await tokens()
       .then((body: any) => {
-        this.setToken(body.access_token);
-        this.setRefreshToken(body.refresh_token);
-        this.setTimeOut(body.expires_in);
+        this.result = body;
       })
 
       .catch((error) => {
@@ -137,8 +135,11 @@ export class SpotifyAuthService {
         console.error(error);
       });
 
+    if (this.result?.error) throw new UnauthorizedException(this.result.error);
+
     this.setToken(this.result.access_token);
     this.setRefreshToken(this.result.refresh_token);
+
     this.setTimeOut(this.result.expires_in);
 
     await this.renewToken();

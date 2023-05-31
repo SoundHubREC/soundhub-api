@@ -4,68 +4,64 @@ import {
   Post,
   Body,
   Param,
-  Put,
   Delete,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { VisitorService } from './visitor.service';
 import { Visitor } from './schemas/visitor.schema';
 import { CreateVisitorDto } from './dto/create-visitor.dto';
-import { UpdateVisitorDto } from './dto/update-visitor.dt';
 import mongoose from 'mongoose';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('visitors')
 export class VisitorController {
   constructor(private visitorService: VisitorService) {}
-
-  @Get()
-  async getAll(): Promise<Visitor[]> {
-    return this.visitorService.findAll();
-  }
 
   @Post()
   async create(@Body() visitor: CreateVisitorDto): Promise<Visitor> {
     return this.visitorService.create(visitor);
   }
 
+  @UseGuards(AuthGuard)
+  @Get()
+  async getAll(@Request() req): Promise<Visitor[]> {
+    return this.visitorService.findAll(req.payload.pubCode);
+  }
+
+  @UseGuards(AuthGuard)
   @Get('/tables')
-  async getTables(): Promise<number[]> {
-    return await this.visitorService.findTable();
+  async getTables(@Request() req): Promise<number[]> {
+    return await this.visitorService.findTable(req.payload.pubCode);
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id')
-  async getById(@Param('id') id: string): Promise<Visitor> {
-    return await this.visitorService.findById(id);
+  async getById(@Param('id') id: string, @Request() req): Promise<Visitor> {
+    return await this.visitorService.findById(id, req.payload.pubCode);
   }
 
+  @UseGuards(AuthGuard)
   @Get('/table/:num')
-  async getByTable(@Param('num') num: number): Promise<Visitor[]> {
-    return await this.visitorService.findByTable(num);
-  }
-
-  @Put(':id')
-  async updateById(
-    @Param('id') id: string,
-    @Body() visitor: UpdateVisitorDto,
-  ): Promise<Visitor> {
-    return await this.visitorService.updateById(id, visitor);
-  }
-
-  @Put('table/:num/status')
-  async updateStatus(
+  async getByTable(
     @Param('num') num: number,
-  ): Promise<mongoose.UpdateWriteOpResult> {
-    return await this.visitorService.updateState(num);
+    @Request() req,
+  ): Promise<Visitor[]> {
+    return await this.visitorService.findByTable(req.payload.pubCode, num);
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<void> {
-    return await this.visitorService.deleteById(id);
+  async delete(@Param('id') id: string, @Request() req): Promise<void> {
+    return await this.visitorService.deleteById(req.payload.pubCode, id);
   }
 
+  @UseGuards(AuthGuard)
   @Delete('/table/:num')
   async deleteByTable(
     @Param('num') num: number,
+    @Request() req,
   ): Promise<mongoose.mongo.DeleteResult> {
-    return await this.visitorService.deleteByTable(num);
+    return await this.visitorService.deleteByTable(req.payload.pubCode, num);
   }
 }
