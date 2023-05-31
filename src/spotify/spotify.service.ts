@@ -26,7 +26,11 @@ export class SpotifyService {
 
   private result;
 
-  async createPlaylist(token, playlistDto) {
+  async createPlaylist(code, playlistDto) {
+    const foundPub = await this.pubService.findPubByCode(code);
+
+    const token = foundPub.spotifyAcessToken;
+
     const userId = process.env.SPOTIFY_USER_ID;
     const options = {
       url: `https://api.spotify.com/v1/users/${userId}/playlists`,
@@ -165,7 +169,11 @@ export class SpotifyService {
     return resp;
   }
 
-  async addPlaylistItem(token, trackId) {
+  async addPlaylistItem(code, trackId) {
+    const foundPub = await this.pubService.findPubByCode(code);
+
+    const token = foundPub.spotifyAcessToken;
+
     const playlistId = process.env.SPOTIFY_PLAYLIST_ID;
     const options = {
       url: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
@@ -197,7 +205,11 @@ export class SpotifyService {
     return this.result;
   }
 
-  async removePlaylistItem(token, trackId) {
+  async removePlaylistItem(code, trackId) {
+    const foundPub = await this.pubService.findPubByCode(code);
+
+    const token = foundPub.spotifyAcessToken;
+
     const playlistId = process.env.SPOTIFY_PLAYLIST_ID;
     const options = {
       url: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
@@ -613,7 +625,11 @@ export class SpotifyService {
     return res;
   }
 
-  async play(token) {
+  async play(code) {
+    const foundPub = await this.pubService.findPubByCode(code);
+
+    const token = foundPub.spotifyAcessToken;
+
     const options = {
       url: `https://api.spotify.com/v1/me/player/play`,
       headers: { Authorization: 'Bearer ' + token },
@@ -649,7 +665,11 @@ export class SpotifyService {
     return res;
   }
 
-  async next(token) {
+  async next(code) {
+    const foundPub = await this.pubService.findPubByCode(code);
+
+    const token = foundPub.spotifyAcessToken;
+
     const options = {
       url: `https://api.spotify.com/v1/me/player/next`,
       headers: { Authorization: 'Bearer ' + token },
@@ -686,7 +706,11 @@ export class SpotifyService {
     return res;
   }
 
-  async pause(token) {
+  async pause(code) {
+    const foundPub = await this.pubService.findPubByCode(code);
+
+    const token = foundPub.spotifyAcessToken;
+
     const options = {
       url: `
       https://api.spotify.com/v1/me/player/pause`,

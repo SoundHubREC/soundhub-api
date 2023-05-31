@@ -5,7 +5,6 @@ import { Visitor } from 'src/visitor/schemas/visitor.schema';
 import { VisitorService } from 'src/visitor/visitor.service';
 import * as bcrypt from 'bcrypt';
 import { LoginPubDto } from 'src/pub/dto/login-pub.dto';
-import { SpotifyAuthService } from 'src/spotify/auth/spotify-auth.service';
 
 @Injectable()
 export class AuthService {
@@ -13,7 +12,6 @@ export class AuthService {
     private jwtService: JwtService,
     private visitorService: VisitorService,
     private pubService: PubService,
-    private spotifyAuthService: SpotifyAuthService,
   ) {}
 
   async createVisitor(visitor: Visitor) {
@@ -48,8 +46,6 @@ export class AuthService {
       pubId: foundPub._id,
       pubName: foundPub.legalName,
       pubCode: foundPub.code,
-      pubAcessToken: foundPub.spotifyAcessToken,
-      pubRefreshToken: foundPub.spotifyRefreshToken,
     };
     return {
       access_token: await this.jwtService.signAsync(payload),
