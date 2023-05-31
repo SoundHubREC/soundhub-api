@@ -62,7 +62,7 @@ export class PubService {
 
     return [
       this.authSpotifyService.getToken(),
-      this.authSpotifyService.getRefreshToken,
+      this.authSpotifyService.getRefreshToken(),
     ];
   }
 
