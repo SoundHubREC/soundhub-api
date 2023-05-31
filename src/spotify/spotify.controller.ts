@@ -2,19 +2,19 @@ import {
   Controller,
   Get,
   Query,
-  Res,
   Param,
   Body,
   Post,
   Request,
   UseGuards,
   Put,
+  Res,
 } from '@nestjs/common';
 import { SpotifyService } from './spotify.service';
 import { SpotifyAuthService } from './auth/spotify-auth.service';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { InsertTrack } from './dto/insertTrack.dto';
+import { InsertTrack } from './dto/insert-track.dto';
 
 @Controller('tracks')
 export class TracksController {
@@ -22,22 +22,24 @@ export class TracksController {
     private readonly spotifyService: SpotifyService,
     private readonly spotifyAuthService: SpotifyAuthService,
   ) {}
-  @Get('/login')
-  async login(@Res() res) {
-    return await this.spotifyAuthService.login(res);
+
+  @Get('/login/:code')
+  async login(@Res() res, @Param('code') code: string) {
+    return await this.spotifyAuthService.login(res, code);
   }
+
   @UseGuards(AuthGuard)
   @Get('/playlist/:playlistId')
   async getPlaylists(@Request() req, @Param('playlistId') playlistId: string) {
     return await this.spotifyService.getPlaylist(
-      req.payload.pubAcessToken,
+      req.payload.visitor.code,
       playlistId,
     );
   }
 
   @Get('/acess')
-  async acess(@Query('code') code: string) {
-    return await this.spotifyAuthService.acess(code);
+  async acess(@Query('code') code: string, @Query('state') state: string) {
+    return await this.spotifyAuthService.acess(code, state);
   }
 
   @UseGuards(AuthGuard)
@@ -78,6 +80,7 @@ export class TracksController {
   async addMusicaQueue(@Body() track: InsertTrack, @Request() req) {
     return await this.spotifyService.addTrackQueue(track, req.payload.visitor);
   }
+
   @UseGuards(AuthGuard)
   @Get('/playlists')
   async viewPlaylists(@Request() req) {

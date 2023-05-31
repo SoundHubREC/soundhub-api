@@ -10,6 +10,7 @@ import mongoose from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import * as dotenv from 'dotenv';
 import { PubService } from 'src/pub/pub.service';
+import { VisitorService } from 'src/visitor/visitor.service';
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ export class SpotifyService {
     private readonly pubService: PubService,
     @InjectModel(Tracks.name)
     private trackModel: mongoose.Model<Tracks>,
+    private visitorService: VisitorService,
   ) {}
 
   private result;
@@ -58,11 +60,15 @@ export class SpotifyService {
     return this.result;
   }
 
-  async getPlaylist(token, playlistId) {
+  async getPlaylist(code, playlistId) {
+    const foundPub = await this.pubService.findPubByCode(code);
+
+    if (!foundPub) throw new UnauthorizedException('Pub not found');
+
     const options = {
       url: `
       https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
-      headers: { Authorization: 'Bearer ' + token },
+      headers: { Authorization: 'Bearer ' + foundPub.spotifyAcessToken },
       json: true,
     };
 
@@ -107,10 +113,14 @@ export class SpotifyService {
     return res;
   }
 
-  async getPlaylists(token) {
+  async getPlaylists(pubCode) {
+    const foundPub = await this.pubService.findPubByCode(pubCode);
+
+    if (!foundPub) throw new UnauthorizedException('Pub not found');
+
     const options = {
       url: `https://api.spotify.com/v1/me/playlists`,
-      headers: { Authorization: 'Bearer ' + token },
+      headers: { Authorization: 'Bearer ' + foundPub.spotifyAcessToken },
       json: true,
     };
 
@@ -340,6 +350,7 @@ export class SpotifyService {
         id: id,
         name: name,
         artist: artists[0].name,
+        artistId: artists[0].id,
         images: album.images[0],
       };
 
@@ -438,8 +449,6 @@ export class SpotifyService {
         console.error(error);
       });
 
-    if (this.result?.error) throw new UnauthorizedException(this.result.error);
-
     const res = [];
 
     if (!this.result.currently_playing)
@@ -451,7 +460,7 @@ export class SpotifyService {
       artist: this.result.currently_playing.artists[0].name,
       images: this.result.currently_playing.album.images[0],
       duration_ms: this.result.currently_playing.duration_ms,
-      visitorId: null,
+      visitorName: null,
       visitorTable: null,
     };
 
@@ -466,7 +475,7 @@ export class SpotifyService {
         artist: artists[0].name,
         images: album.images[0],
         duration_ms: duration_ms,
-        visitorId: null,
+        visitorName: null,
         visitorTable: null,
       };
 
@@ -480,12 +489,14 @@ export class SpotifyService {
         createdAt: {
           $gte: date.setHours(date.getHours() - 1),
         },
+        pubId: foundPub._id.toString(),
       },
       {
         _id: 0,
         artistId: 0,
         table: 0,
         userId: 0,
+        pubId: 0,
         createdAt: 0,
         updatedAt: 0,
         __v: 0,
@@ -506,8 +517,14 @@ export class SpotifyService {
         });
 
         if (res[i].id === tracks[j]) {
-          res[i].visitorId = foundVisitor.userId;
-          res[i].visitorTable = foundVisitor.table;
+          const visitor = await this.visitorService.findById(
+            foundVisitor.userId,
+            visitorCode,
+          );
+
+          res[i].visitorName = visitor.name;
+
+          res[i].visitorTable = visitor.tableNum;
         }
         continue;
       }
@@ -517,16 +534,25 @@ export class SpotifyService {
   }
 
   async addTrackQueue(dto, visitor) {
+    if (!visitor) throw new UnauthorizedException();
+
+    const foundPub = await this.pubService.findPubByCode(visitor.code);
+
+    if (!foundPub) throw new UnauthorizedException('Pub not found');
+
+    const token = foundPub.spotifyAcessToken;
+
     const track = {
       userId: visitor._id,
       trackId: dto.trackId,
       artistId: dto.artistId,
       table: visitor.tableNum,
+      pubId: foundPub._id,
     };
 
     const date = new Date();
 
-    const foundTrack = await this.trackModel
+    const foundTracksInOneHour = await this.trackModel
       .countDocuments({
         trackId: dto.trackId,
         createdAt: {
@@ -535,22 +561,18 @@ export class SpotifyService {
       })
       .exec();
 
-    if (foundTrack !== 0)
+    if (foundTracksInOneHour !== 0)
       throw new UnauthorizedException(
         'This music has been selected less than 1 hour. Try again more later',
       );
 
     const credits = await this.trackModel
-      .countDocuments({ userId: visitor._id })
+      .findOne({ userId: visitor._id })
       .exec();
 
     if (credits >= visitor.credits) {
       throw new UnauthorizedException('Credit limit reaching');
     }
-
-    const foundPub = await this.pubService.findPubByCode(visitor.code);
-
-    const token = foundPub.spotifyAcessToken;
 
     const options = {
       url: `
@@ -590,6 +612,7 @@ export class SpotifyService {
 
     return res;
   }
+
   async play(token) {
     const options = {
       url: `https://api.spotify.com/v1/me/player/play`,

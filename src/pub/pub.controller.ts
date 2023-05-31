@@ -5,21 +5,21 @@ import {
   Param,
   Delete,
   Request,
-  Body,
   UseGuards,
+  Body,
 } from '@nestjs/common';
 import { PubService } from './pub.service';
 import { QrCode } from './schemas/qr-code.schema';
 import * as mongoose from 'mongoose';
-import { CreatePubDto } from './dto/create-pub.dto';
 import { Pub } from './schemas/pub.schema';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { CreatePubDTO } from './dto/create-pub.dto';
 @Controller('pub')
 export class PubController {
   constructor(private pubService: PubService) {}
 
   @Post()
-  async createPub(@Body() pub: CreatePubDto): Promise<Pub> {
+  async createPub(@Body() pub: CreatePubDTO): Promise<Pub> {
     return await this.pubService.createPub(pub);
   }
 

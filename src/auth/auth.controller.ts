@@ -7,13 +7,13 @@ import { LoginPubDto } from 'src/pub/dto/login-pub.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('create')
-  async create(@Body() visitor: Visitor): Promise<any> {
+  @Post('visitor/create')
+  async visitorCreate(@Body() visitor: Visitor): Promise<any> {
     return await this.authService.createVisitor(visitor);
   }
 
-  @Post('login')
+  @Post('pub/login')
   async loginPub(@Body() pub: LoginPubDto): Promise<any> {
-    return await this.authService.loginPub(pub);
+    return await this.authService.pubLogin(pub);
   }
 }

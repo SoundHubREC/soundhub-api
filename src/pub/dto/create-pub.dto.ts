@@ -1,8 +1,8 @@
-export class CreatePubDto {
+export class CreatePubDTO {
   userName: string;
   legalName: string;
   password: string;
-  acessToken?: number;
-  refreshToken?: number;
-  code?: string;
+  spotifyAcessToken?: string;
+  spotifyRefreshToken?: string;
+  code: string;
 }
