@@ -578,12 +578,12 @@ export class SpotifyService {
         'This music has been selected less than 1 hour. Try again more later',
       );
 
-    const foundVisitor = await this.visitorService.findById(
-      visitor._id,
-      visitor.code,
-    );
+    const quantityOfTracks = await this.trackModel.countDocuments({
+      userId: visitor._id,
+      pubId: foundPub._id,
+    });
 
-    if (visitor.credits >= foundVisitor.credits) {
+    if (quantityOfTracks >= visitor.credits) {
       throw new UnauthorizedException('Credit limit reaching');
     }
 
