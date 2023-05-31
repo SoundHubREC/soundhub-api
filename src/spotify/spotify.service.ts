@@ -475,16 +475,42 @@ export class SpotifyService {
 
     const date = new Date();
 
-    for (let i = 0; i < res.length; i++) {
-      const foundVisitor = await this.trackModel.findOne({
-        trackId: res[i].id,
+    const foundTracks = await this.trackModel.find(
+      {
         createdAt: {
           $gte: date.setHours(date.getHours() - 1),
         },
-      });
+      },
+      {
+        _id: 0,
+        artistId: 0,
+        table: 0,
+        userId: 0,
+        createdAt: 0,
+        updatedAt: 0,
+        __v: 0,
+      },
+    );
 
-      res[i].visitorId = foundVisitor.userId;
-      res[i].visitorTable = foundVisitor.table;
+    const tracks = foundTracks.map((item) => {
+      return item.trackId;
+    });
+
+    for (let i = 0; i < res.length; ++i) {
+      for (let j = 0; j < tracks.length; ++j) {
+        const foundVisitor = await this.trackModel.findOne({
+          trackId: tracks[j],
+          createdAt: {
+            $gte: date.setHours(date.getHours() - 1),
+          },
+        });
+
+        if (res[i].id === tracks[j]) {
+          res[i].visitorId = foundVisitor.userId;
+          res[i].visitorTable = foundVisitor.table;
+        }
+        continue;
+      }
     }
 
     return res;
