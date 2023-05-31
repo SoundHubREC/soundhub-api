@@ -27,9 +27,13 @@ export class VisitorController {
     return await this.visitorService.findTable(req.payload.pubCode);
   }
 
-  @Get(':id')
-  async getById(@Param('id') id: string, @Request() req): Promise<Visitor> {
-    return await this.visitorService.findById(id, req.payload.visitor.code);
+  @UseGuards(AuthGuard)
+  @Get('/self')
+  async getById(@Param('id') id: string, @Request() req) {
+    return await this.visitorService.findById(
+      req.payload.visitor._id.toString(),
+      req.payload.visitor.code,
+    );
   }
 
   @UseGuards(AuthGuard)

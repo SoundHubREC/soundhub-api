@@ -29,6 +29,10 @@ export class SpotifyAuthService {
     const token = this.getToken();
     let result = {};
 
+    const setRenewToken = async (result) => {
+      await this.pubService.setPubTokens(pubId, result);
+    };
+
     setInterval(async function () {
       const authOptions = {
         url: 'https://accounts.spotify.com/api/token',
@@ -66,11 +70,9 @@ export class SpotifyAuthService {
         .catch((error) => {
           console.error(error);
         });
-    }, 5000);
 
-    this.setToken(result);
-
-    await this.pubService.setPubTokens(pubId, token);
+      await setRenewToken(result);
+    }, (token.expires_in - 60) * 1000);
   }
 
   async login(res, code) {

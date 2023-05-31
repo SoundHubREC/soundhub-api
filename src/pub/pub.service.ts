@@ -55,18 +55,21 @@ export class PubService {
     return await this.pubModel.findOne({ _id: id });
   }
 
-  async setPubTokens(pubId: string, token) {
+  async setPubTokens(pubId: string, newToken) {
+    const actualToken = await this.authSpotifyService.getToken();
+
+    if (!actualToken)
+      throw new UnauthorizedException('Please login in spotify');
+
     await this.pubModel.updateOne(
       { _id: pubId },
       {
         $set: {
-          spotifyAcessToken: token.access_token,
-          spotifyRefreshToken: token.refresh_token,
+          spotifyAcessToken: newToken.access_token,
+          updatedAt: new Date(),
         },
       },
     );
-
-    return token;
   }
 
   async findAllQrCodes(pubId: string): Promise<QrCode[]> {

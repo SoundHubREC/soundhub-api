@@ -578,11 +578,12 @@ export class SpotifyService {
         'This music has been selected less than 1 hour. Try again more later',
       );
 
-    const credits = await this.trackModel
-      .findOne({ userId: visitor._id })
-      .exec();
+    const foundVisitor = await this.visitorService.findById(
+      visitor._id,
+      visitor.code,
+    );
 
-    if (credits >= visitor.credits) {
+    if (foundVisitor.credits >= visitor.credits) {
       throw new UnauthorizedException('Credit limit reaching');
     }
 
@@ -628,6 +629,8 @@ export class SpotifyService {
   async play(code) {
     const foundPub = await this.pubService.findPubByCode(code);
 
+    if (!foundPub) throw new UnauthorizedException('Pub not found');
+
     const token = foundPub.spotifyAcessToken;
 
     const options = {
@@ -667,6 +670,8 @@ export class SpotifyService {
 
   async next(code) {
     const foundPub = await this.pubService.findPubByCode(code);
+
+    if (!foundPub) throw new UnauthorizedException('Pub not found');
 
     const token = foundPub.spotifyAcessToken;
 
@@ -708,6 +713,8 @@ export class SpotifyService {
 
   async pause(code) {
     const foundPub = await this.pubService.findPubByCode(code);
+
+    if (!foundPub) throw new UnauthorizedException('Pub not found');
 
     const token = foundPub.spotifyAcessToken;
 
