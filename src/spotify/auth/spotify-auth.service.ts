@@ -66,6 +66,11 @@ export class SpotifyAuthService {
         console.error(error);
       });
 
+    this.setToken(this.result.access_token);
+    this.setRefreshToken(this.result.refresh_token);
+
+    this.setTimeOut(this.result.expires_in);
+
     const expirationTimeInMillis = (this.timeout - 60) * 1000;
     setInterval(async () => {
       await this.renewToken();
