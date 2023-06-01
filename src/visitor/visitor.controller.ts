@@ -28,7 +28,7 @@ export class VisitorController {
   }
 
   @UseGuards(AuthGuard)
-  @Get('/ self')
+  @Get('/self')
   async getById(@Param('id') id: string, @Request() req) {
     return await this.visitorService.findById(
       req.payload.visitor._id.toString(),
