@@ -72,7 +72,7 @@ export class SpotifyAuthService {
         });
 
       await setRenewToken(result);
-    }, (token.expires_in - 60) * 1000);
+    }, 3300000);
   }
 
   async login(res, code) {
@@ -102,7 +102,7 @@ export class SpotifyAuthService {
     );
   }
 
-  async acess(code, pubId): Promise<void> {
+  async acess(code): Promise<void> {
     const authOptions = {
       url: 'https://accounts.spotify.com/api/token',
       form: {
@@ -144,7 +144,5 @@ export class SpotifyAuthService {
     if (this.result?.error) throw new UnauthorizedException(this.result.error);
 
     this.setToken(this.result);
-
-    await this.renewToken(pubId);
   }
 }

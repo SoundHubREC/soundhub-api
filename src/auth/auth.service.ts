@@ -53,6 +53,9 @@ export class AuthService {
       pubName: foundPub.legalName,
       pubCode: foundPub.code,
     };
+
+    await this.spotifyAuthService.renewToken(foundPub._id);
+
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
