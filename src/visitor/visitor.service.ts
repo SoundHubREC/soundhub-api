@@ -97,4 +97,11 @@ export class VisitorService {
       tableNum: tableNum,
     });
   }
+
+  async updateCredit(visitor) {
+    return await this.visitorModel.findOneAndUpdate(
+      { _id: visitor._id },
+      { $set: { credits: visitor.credits - 1, updatedAt: new Date() } },
+    );
+  }
 }
