@@ -249,7 +249,7 @@ export class SpotifyService {
     const token = foundPub.spotifyAcessToken;
 
     const foundArtists = await this.trackModel.find(
-      {},
+      { pubId: foundPub._id },
       {
         _id: 0,
         userId: 0,
