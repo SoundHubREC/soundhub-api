@@ -38,8 +38,8 @@ export class TracksController {
   }
 
   @Get('/acess')
-  async acess(@Query('code') code: string, @Query('state') state: string) {
-    return await this.spotifyAuthService.acess(code, state);
+  async acess(@Query('code') code: string) {
+    return await this.spotifyAuthService.acess(code);
   }
 
   @UseGuards(AuthGuard)
